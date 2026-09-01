@@ -1,0 +1,38 @@
+name: Run Jest Unit Tests
+
+# 1. Điều kiện kích hoạt Workflow
+on:
+  push:
+    branches: [ "main", "master", "develop" ] # Chạy khi push lên các nhánh này
+  pull_request:
+    branches: [ "main", "master" ] # Chạy khi tạo Pull Request vào các nhánh này
+
+# 2. Danh sách các tác vụ (Jobs) cần thực thi
+jobs:
+  test:
+    name: Run Jest Tests on Node.js
+    runs-on: ubuntu-latest # Chạy trên hệ điều hành Ubuntu mới nhất của GitHub
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x] # Thử nghiệm chạy trên cả 2 phiên bản Node.js
+
+    steps:
+      # Bước 2.1: Checkout mã nguồn từ repository về máy chủ ảo
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      # Bước 2.2: Thiết lập môi trường Node.js trên máy chủ ảo
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm' # Bật cache giúp rút ngắn thời gian npm install ở các lần chạy sau
+
+      # Bước 2.3: Cài đặt các thư viện/dependencies
+      - name: Install dependencies
+        run: npm ci # Dùng 'npm ci' thay cho 'npm install' để đảm bảo chính xác phiên bản trong package-lock.json
+
+      # Bước 2.4: Thực thi lệnh chạy Jest Test
+      - name: Run Jest test suite
+        run: npm test
